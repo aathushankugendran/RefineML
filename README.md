@@ -1,4 +1,4 @@
-# RefineML: Intelligent Code Optimization Platform
+# RefineML: Dynamic Code Optimization Platform
 
 ## Overview
 RefineML is an advanced AI-powered tool designed to analyze source code and suggest improvements for readability, efficiency, and maintainability. Leveraging cutting-edge machine learning models, optimization algorithms, and rule-based logic, RefineML intelligently refactors code for popular programming languages like Python and C. The platform enhances coding practices by providing actionable recommendations tailored to improve performance and clarity.
