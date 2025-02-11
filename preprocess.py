@@ -1,6 +1,5 @@
-# scripts/preprocess.py
-import re
-import os
+import re  # Regular expressions for pattern matching
+import os  # Operating system functions for file handling
 
 def load_code(file_path):
     """
@@ -15,10 +14,10 @@ def remove_comments(code, language='Python'):
     Supports Python and C-style comments.
     """
     if language == 'Python':
-        # Remove single-line Python comments
+        # Remove single-line Python comments using regex
         code = re.sub(r'#.*', '', code)
     else:
-        # Remove C-style comments: single-line // and multi-line /* */
+        # Remove C-style single-line (//) and multi-line (/* */) comments
         code = re.sub(r'//.*', '', code)
         code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
     return code
@@ -27,46 +26,37 @@ def normalize_spacing(code):
     """
     Normalizes spacing by removing extra spaces, tabs, and blank lines.
     """
-    # Replace tabs with spaces
-    code = code.replace('\t', '    ')
-    # Remove trailing spaces
-    code = re.sub(r'[ \t]+$', '', code, flags=re.MULTILINE)
-    # Remove consecutive blank lines
-    code = re.sub(r'\n\n+', '\n', code)
+    code = code.replace('\t', '    ')  # Replace tabs with spaces
+    code = re.sub(r'[ \t]+$', '', code, flags=re.MULTILINE)  # Remove trailing spaces
+    code = re.sub(r'\n\n+', '\n', code)  # Remove consecutive blank lines
     return code
 
 def hardcoded_optimizations(code):
     """
     Applies hardcoded optimizations to known inefficient patterns in the code.
     """
-    # Optimization 1: Replace nested loops with a list comprehension
-    if "result = []" in code and "for i in range(" in code and "for j in range(" in code:
-        code = code.replace(
-            "result = []\nfor i in range(10):\n    for j in range(10):\n        result.append(i * j)",
-            "result = [i * j for i in range(10) for j in range(10)]"
-        )
-
-    # Optimization 2: Replace string concatenation in a loop with join()
-    if "sentence = ''" in code and "for word in words:" in code and "sentence += word + ' '" in code:
-        code = code.replace(
-            "sentence = ''\nfor word in words:\n    sentence += word + ' '",
-            "sentence = ' '.join(words) + ' '"
-        )
-
-    # Optimization 3: Replace manual sum calculation with built-in sum()
-    if "total = 0" in code and "for num in numbers:" in code and "total += num" in code:
-        code = code.replace(
-            "total = 0\nfor num in numbers:\n    total += num",
-            "total = sum(numbers)"
-        )
-
-    # Optimization 4: Replace list-based uniqueness with set-based
-    if "unique_items = []" in code and "for item in items:" in code and "if item not in unique_items:" in code:
-        code = code.replace(
-            "unique_items = []\nfor item in items:\n    if item not in unique_items:\n        unique_items.append(item)",
+    optimizations = {
+        # Replace nested loops with list comprehensions where possible
+        "result = []\nfor i in range(10):\n    for j in range(10):\n        result.append(i * j)":
+            "result = [i * j for i in range(10) for j in range(10)]",
+        
+        # Optimize string concatenation inside loops with join()
+        "sentence = ''\nfor word in words:\n    sentence += word + ' '":
+            "sentence = ' '.join(words) + ' '",
+        
+        # Replace manual summation with built-in sum()
+        "total = 0\nfor num in numbers:\n    total += num":
+            "total = sum(numbers)",
+        
+        # Replace list-based uniqueness checking with set conversion
+        "unique_items = []\nfor item in items:\n    if item not in unique_items:\n        unique_items.append(item)":
             "unique_items = list(set(items))"
-        )
-
+    }
+    
+    for pattern, replacement in optimizations.items():
+        if pattern in code:
+            code = code.replace(pattern, replacement)
+    
     return code
 
 def preprocess_code(file_path, language='Python'):
@@ -81,20 +71,16 @@ def preprocess_code(file_path, language='Python'):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
-    # Load the code
-    code = load_code(file_path)
+    code = load_code(file_path)  # Load the source code
     print("Step 1: Loaded code successfully.")
 
-    # Remove comments
-    code_no_comments = remove_comments(code, language)
+    code_no_comments = remove_comments(code, language)  # Remove comments
     print("Step 2: Removed comments.")
 
-    # Normalize spacing
-    cleaned_code = normalize_spacing(code_no_comments)
+    cleaned_code = normalize_spacing(code_no_comments)  # Normalize spacing
     print("Step 3: Normalized spacing and formatting.")
 
-    # Apply hardcoded optimizations
-    optimized_code = hardcoded_optimizations(cleaned_code)
+    optimized_code = hardcoded_optimizations(cleaned_code)  # Apply optimizations
     print("Step 4: Applied hardcoded optimizations.")
 
     return optimized_code
@@ -108,7 +94,7 @@ def save_preprocessed_code(output_path, code):
     print(f"Preprocessed code saved to: {output_path}")
 
 if __name__ == '__main__':
-    import argparse
+    import argparse  # Library for parsing command-line arguments
 
     parser = argparse.ArgumentParser(description="Preprocess source code for analysis and optimization.")
     parser.add_argument('--input', type=str, required=True, help="Path to the input code file.")
@@ -116,10 +102,9 @@ if __name__ == '__main__':
     parser.add_argument('--language', type=str, default='Python', help="Programming language of the code (default: Python).")
     args = parser.parse_args()
 
-    # Preprocess the code
     try:
-        preprocessed_code = preprocess_code(args.input, args.language)
-        save_preprocessed_code(args.output, preprocessed_code)
+        preprocessed_code = preprocess_code(args.input, args.language)  # Preprocess input code
+        save_preprocessed_code(args.output, preprocessed_code)  # Save processed code
         print("Code preprocessing completed successfully.")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}")  # Handle errors and exceptions
