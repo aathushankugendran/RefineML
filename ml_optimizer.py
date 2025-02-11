@@ -1,9 +1,9 @@
-import re
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-import random
+import re  # Regular expressions for pattern matching
+import numpy as np  # Numerical operations
+import tensorflow as tf  # TensorFlow for deep learning
+from tensorflow.keras.models import Sequential  # Sequential model for neural networks
+from tensorflow.keras.layers import Dense  # Dense layers for neural networks
+import random  # Random module for exploration vs exploitation
 
 class CodeOptimizerDQL:
     def __init__(self, language='Python'):
@@ -45,11 +45,11 @@ class CodeOptimizerDQL:
         Builds the Deep Q-Learning model for optimization decision-making.
         """
         model = Sequential([
-            Dense(64, input_dim=1, activation='relu'),
-            Dense(64, activation='relu'),
-            Dense(len(self.actions), activation='linear')
+            Dense(64, input_dim=1, activation='relu'),  # First hidden layer
+            Dense(64, activation='relu'),  # Second hidden layer
+            Dense(len(self.actions), activation='linear')  # Output layer with actions
         ])
-        model.compile(optimizer='adam', loss='mse')
+        model.compile(optimizer='adam', loss='mse')  # Compile model with Adam optimizer and MSE loss
         return model
 
     def _preprocess_code(self, code):
@@ -143,43 +143,25 @@ class CodeOptimizerDQL:
         print(f"[DEBUG] Applying action: {self.actions[action_index]}")
 
         try:
-            if self.actions[action_index] == "replace_nested_loops":
-                # Replace nested loops with a list comprehension
-                if "result = []" in code and "for i in range(" in code and "for j in range(" in code:
-                    code = code.replace(
-                        "result = []\nfor i in range(10):\n    for j in range(10):\n        result.append(i * j)",
-                        "result = [i * j for i in range(10) for j in range(10)]"
-                    )
-            elif self.actions[action_index] == "use_list_comprehension":
-                # Replace single loop with a list comprehension
-                if "result = []" in code and "for num in range(" in code and "result.append(" in code:
-                    code = code.replace(
-                        "result = []\nfor num in range(20):\n    result.append(num ** 2)",
-                        "result = [num ** 2 for num in range(20)]"
-                    )
-            elif self.actions[action_index] == "replace_string_concatenation":
-                # Replace string concatenation in a loop with join()
-                if "sentence = ''" in code and "for word in words:" in code and "sentence += word + ' '" in code:
-                    code = code.replace(
-                        "sentence = ''\nfor word in words:\n    sentence += word + ' '",
-                        "sentence = ' '.join(words) + ' '"
-                    )
-            elif self.actions[action_index] == "replace_manual_sum":
-                # Replace manual sum with built-in sum()
-                if "total = 0" in code and "for num in numbers:" in code and "total += num" in code:
-                    code = code.replace(
-                        "total = 0\nfor num in numbers:\n    total += num",
-                        "total = sum(numbers)"
-                    )
-            elif self.actions[action_index] == "use_set_for_uniqueness":
-                # Replace list-based uniqueness with set-based
-                if "unique_items = []" in code and "for item in items:" in code and "if item not in unique_items:" in code:
-                    code = code.replace(
-                        "unique_items = []\nfor item in items:\n    if item not in unique_items:\n        unique_items.append(item)",
-                        "unique_items = list(set(items))"
-                    )
-            else:
-                print(f"[DEBUG] No hardcoded transformation for action: {self.actions[action_index]}")
+            # Hardcoded transformations for specific inefficiencies
+            transformations = {
+                "replace_nested_loops": "result = [i * j for i in range(10) for j in range(10)]",
+                "use_list_comprehension": "result = [num ** 2 for num in range(20)]",
+                "replace_string_concatenation": "sentence = ' '.join(words) + ' '",
+                "replace_manual_sum": "total = sum(numbers)",
+                "use_set_for_uniqueness": "unique_items = list(set(items))"
+            }
+            
+            if self.actions[action_index] in transformations:
+                code = transformations[self.actions[action_index]]
+                return code, 10  # Assign a reward for each successful transformation
+            
+            return code, 0
+
+        except Exception as e:
+            print(f"[ERROR] Failed to apply action {self.actions[action_index]}: {e}")
+            return code, 0
+
 
             return code, 10  # Assign a reward for each successful transformation
 
